@@ -329,8 +329,8 @@ Resources:
             \curl -sSL https://get.rvm.io | bash -s stable
             source /usr/local/rvm/scripts/rvm
             rvm install 3.0.0
-            git clone git@github.com:vinay-nadig-0042/svennex.git
-            cd svennex-v3/
+            git clone https://github.com/vinay-nadig-0042/svennex.git
+            cd svennex/
             bundle install
             npm install -g yarn
             echo "DATABASE_URL=postgresql://${RdsMasterUsername}:${RdsMasterPassword}@${PrimaryDB.Endpoint.Address}/svennex" >> .env.production
@@ -351,13 +351,13 @@ Resources:
             echo "RAILS_ENV=${RailsEnv}" >> .env.production
             echo "SIDEKIQ_CONCURRENCY=10" >> .env.production
             export DOMAIN_NAME=${DomainName}
-            envsubst '${!DOMAIN_NAME}' < /svennex-v3/iac/config/nginx > /etc/nginx/sites-enabled/svennex
+            envsubst '${!DOMAIN_NAME}' < /svennex/iac/config/nginx > /etc/nginx/sites-enabled/svennex
             cp iac/systemd/sidekiq.service /usr/lib/systemd/system
             cp iac/systemd/rails.service /usr/lib/systemd/system
             rm /etc/nginx/sites-enabled/default
             certbot --email ${LetsEncryptEmail} --non-interactive --agree-tos --nginx -d ${DomainName}
             service nginx restart
-            # echo "source /svennex-v3/.env.production" >> /etc/profile
+            # echo "source /svennex/.env.production" >> /etc/profile
             systemctl enable rails.service
             systemctl enable sidekiq.service
             systemctl start rails.service

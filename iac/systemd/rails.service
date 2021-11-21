@@ -6,8 +6,8 @@ Requires=network.target
 Type=simple
 User=root
 Group=root
-WorkingDirectory=/svennex-v3
-EnvironmentFile=/svennex-v3/.env.production
+WorkingDirectory=/svennex
+EnvironmentFile=/svennex/.env.production
 ExecStartPre=/usr/bin/bash -lc 'RAILS_ENV=production bundle exec rake assets:precompile && bundle exec rake db:migrate'
 ExecStart=/usr/bin/bash -lc 'RAILS_ENV=production PORT=3000 bundle exec puma -C config/puma.rb'
 TimeoutSec=900
