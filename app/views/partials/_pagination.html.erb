@@ -1,0 +1,14 @@
+<% if resources.count > max_page %>
+  <nav>
+    <ul class="pagination">
+      <%# binding.pry %>
+      <% ((resources.count.to_f/max_page).ceil.to_i).times do |n| %>
+        <% if (n+1).to_s == params['page'] %>
+          <li class="active page-item"><a class="page-link" href="/build_jobs?page=<%= n+1 %>"><%= n+1 %></a></li>
+        <% else %>
+          <li class="page-item"><a class="page-link" href="/build_jobs?page=<%= n+1 %>"><%= n+1 %></a></li>
+        <% end %>
+      <% end %>
+    </ul>
+  </nav>
+<% end %>

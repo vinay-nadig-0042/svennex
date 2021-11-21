@@ -1,0 +1,378 @@
+Parameters:
+  LetsEncryptEmail:
+    Type: String
+    Description: Email ID to provision a LetsEncrypt certificate.
+  RailsEnv:
+    Type: String
+    Default: production
+  RdsInstanceType:
+    Type: String
+    AllowedValues:
+      - db.t4g.micro
+      - db.t4g.small
+      - db.t4g.medium
+  RdsStorageSize:
+    Type: Number
+    Default: 50
+  RdsMasterUsername:
+    Type: String
+    Description: Username for RDS Postgres authentication.
+  RdsMasterPassword:
+    Type: String
+    Description: Password for RDS Postgres authentication
+  RedisCacheSize:
+    Type: String
+    Default: cache.t3.micro
+    AllowedValues:
+      - cache.t3.micro
+      - cache.t3.small
+      - cache.t3.medium 
+  Ec2InstanceSize:
+    Type: String
+    Default: t3.medium
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+  Ec2VolumeSize:
+    Type: Number
+    Default: 50
+  Ec2KeyName:
+    Type: String
+    Description: SSH Key name as shown in the "Key Pairs" section in EC2 Console.
+  GithubOauthClientID:
+    Type: String
+    Description: Client ID of a Github OAuth application. See https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app for more details.
+  GithubOauthClientSecret:
+    Type: String
+    Description: Client Secret of a Github OAuth application. See https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app for more details.
+  DomainName:
+    Type: String
+    Description: FQDN where you will host Svennex. You will need to add a A record pointing the FQDN to the EC2 Instance's IP address.
+  GitlabOauthClientID:
+    Type: String
+  GitlabOauthRedirectURL:
+    Type: String
+  GitlabOauthClientSecret:
+    Type: String
+  SmtpUsername:
+    Type: String
+  SmtpPassword:
+    Type: String
+  SmtpDomain:
+    Type: String
+  SmtpAddress:
+    Type: String
+  SmtpPort:
+    Type: String
+  DomainName:
+    Type: String
+  SSHWhitelistIP:
+    Type: String
+    Default: "0.0.0.0/0"
+
+Mappings:
+  Ec2RegionToAMI:
+    af-south-1:
+      amiId: ami-0ff86122fd4ad7208
+    ap-east-1:
+      amiId: ami-0a9c1cc3697104990
+    ap-northeast-1:
+      amiId: ami-036d0684fc96830ca
+    ap-south-1:
+      amiId: ami-0567e0d2b4b2169ae
+    ap-southeast-1:
+      amiId: ami-0fed77069cd5a6d6c
+    ca-central-1:
+      amiId: ami-0bb84e7329f4fa1f7
+    eu-central-1:
+      amiId: ami-0a49b025fffbbdac6
+    eu-north-1:
+      amiId: ami-0bd9c26722573e69b
+    eu-south-1:
+      amiId: ami-0f8ce9c417115413d
+    eu-west-1:
+      amiId: ami-08edbb0e85d6a0a07
+    me-south-1:
+      amiId: ami-0b4946d7420c44be4
+    sa-east-1:
+      amiId: ami-0e66f5495b4efdd0f
+    us-east-1:
+      amiId: ami-083654bd07b5da81d
+    us-west-1:
+      amiId: ami-053ac55bdcfe96e85
+    cn-north-1:
+      amiId: ami-0741e7b8b4fb0001c
+    cn-northwest-1:
+      amiId: ami-0883e8062ff31f727
+    us-gov-east-1:
+      amiId: ami-0fe6338c47e61cd5d
+    us-gov-west-1:
+      amiId: ami-087ee83c8de303181
+    ap-northeast-2:
+      amiId: ami-0f8b8babb98cc66d0
+    ap-southeast-2:
+      amiId: ami-0bf8b986de7e3c7ce
+    eu-west-2:
+      amiId: ami-0fdf70ed5c34c5f52
+    us-east-2:
+      amiId: ami-0629230e074c580f2
+    us-west-2:
+      amiId: ami-036d46416a34a611c
+    ap-northeast-3:
+      amiId: ami-0c3904e7363bbc4bc
+    eu-west-3:
+      amiId: ami-06d79c60d7454e2af
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub "Svennex-VPC"
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "Svennex-IGW"
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.0.0.0/20
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub 'Svennex-Pub-Subnet-AZ1'
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: 10.0.16.0/20
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub 'Svennex-Pub-Subnet-AZ2'
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub 'Svennex-Pub-Routes'
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  PrimaryDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: 'Primary DB Subnet Group'
+      SubnetIds:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+
+  AppToPrimaryDBSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow traffic from Application to DB
+      VpcId: !Ref 'VPC'
+
+  IngressFromAppToDB:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Ingress from EC2 to DB
+      GroupId: !GetAtt AppToPrimaryDBSG.GroupId
+      SourceSecurityGroupId: !GetAtt EC2SG.GroupId
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+
+  PrimaryDB:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DeleteAutomatedBackups: false
+      DeletionProtection: false
+      DBName: "svennex"
+      DBInstanceClass: !Ref RdsInstanceType
+      AllocatedStorage: !Ref RdsStorageSize
+      Engine: postgres
+      EngineVersion: 13.4
+      MasterUsername: !Ref RdsMasterUsername
+      MasterUserPassword: !Ref RdsMasterPassword
+      MultiAZ: false
+      Port: 5432
+      PubliclyAccessible: false
+      StorageType: gp2
+      DBSubnetGroupName: !Ref PrimaryDBSubnetGroup
+      MaxAllocatedStorage: 1024
+      VPCSecurityGroups:
+        - !Ref AppToPrimaryDBSG
+
+  ElasticacheSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      Description: 'Sidekiq Redis Subnet Group'
+      SubnetIds:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+
+  AppToSidekiqRedisSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow traffic from Application to Redis
+      VpcId: !Ref 'VPC'
+
+  IngressFromAppToRedis:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Ingress from EC2 to DB
+      GroupId: !GetAtt AppToSidekiqRedisSG.GroupId
+      SourceSecurityGroupId: !GetAtt EC2SG.GroupId
+      IpProtocol: tcp
+      FromPort: 6379
+      ToPort: 6379
+
+  SidekiqRedisInstance:
+    Type: AWS::ElastiCache::CacheCluster
+    Properties:
+      CacheNodeType: !Ref RedisCacheSize
+      ClusterName: !Sub 'Svennex-Redis'
+      Engine: redis
+      EngineVersion: 6.x
+      NumCacheNodes: 1
+      Port: 6379
+      PreferredAvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CacheSubnetGroupName: !Ref ElasticacheSubnetGroup
+      VpcSecurityGroupIds:
+       - !GetAtt AppToSidekiqRedisSG.GroupId
+
+  EC2SG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH Access
+      VpcId: !Ref 'VPC'
+      SecurityGroupIngress:
+        - CidrIp: !Ref SSHWhitelistIP
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+        - CidrIp: !Ref SSHWhitelistIP
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+        - CidrIp: !Ref SSHWhitelistIP
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+
+  Ec2LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        BlockDeviceMappings: 
+          - Ebs:
+              VolumeSize: !Ref Ec2VolumeSize
+              VolumeType: gp3
+              DeleteOnTermination: true
+            DeviceName: /dev/sda1
+        InstanceType: !Ref Ec2InstanceSize
+        KeyName: !Ref Ec2KeyName
+        ImageId: !FindInMap [ Ec2RegionToAMI, !Ref AWS::Region, amiId ]
+        SecurityGroupIds:
+          - !GetAtt EC2SG.GroupId
+        UserData:
+          Fn::Base64: !Sub |
+            #!/usr/bin/env bash
+
+            apt-get update
+            apt install -y gnupg2 libpq-dev nginx nodejs npm certbot python3-certbot-nginx ca-certificates curl lsb-release
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+            gpg2 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+            apt-get update
+            apt-get install -y docker-ce docker-ce-cli containerd.io
+            \curl -sSL https://get.rvm.io | bash -s stable
+            source /usr/local/rvm/scripts/rvm
+            rvm install 3.0.0
+            git clone git@github.com:vinay-nadig-0042/svennex.git
+            cd svennex-v3/
+            bundle install
+            npm install -g yarn
+            echo "DATABASE_URL=postgresql://${RdsMasterUsername}:${RdsMasterPassword}@${PrimaryDB.Endpoint.Address}/svennex" >> .env.production
+            echo "RAILS_MASTER_KEY=`openssl rand -hex 30`" >> .env.production
+            echo "SECRET_KEY_BASE=`openssl rand -hex 30`" >> .env.production
+            echo "GITHUB_OAUTH_CLIENT_ID=${GithubOauthClientID}" >> .env.production
+            echo "GITHUB_OAUTH_CLIENT_SECRET=${GithubOauthClientSecret}" >> .env.production
+            echo "REDIS_URL=redis://${SidekiqRedisInstance.RedisEndpoint.Address}:6379/0" >> .env.production
+            echo "GITLAB_OAUTH_CLIENT_ID=${GitlabOauthClientID}" >> .env.production
+            echo "GITLAB_OAUTH_REDIRECT_URL=${GitlabOauthRedirectURL}" >> .env.production
+            echo "GITLAB_OAUTH_CLIENT_SECRET=${GitlabOauthClientSecret}" >> .env.production
+            echo "SMTP_USERNAME=${SmtpUsername}" >> .env.production
+            echo "SMTP_PASSWORD=${SmtpPassword}" >> .env.production
+            echo "SMTP_DOMAIN=${SmtpDomain}" >> .env.production
+            echo "SMTP_ADDRESS=${SmtpAddress}" >> .env.production
+            echo "SMTP_PORT=${SmtpPort}" >> .env.production
+            echo "DOMAIN_NAME=${DomainName}" >> .env.production
+            echo "RAILS_ENV=${RailsEnv}" >> .env.production
+            echo "SIDEKIQ_CONCURRENCY=10" >> .env.production
+            export DOMAIN_NAME=${DomainName}
+            envsubst '${!DOMAIN_NAME}' < /svennex-v3/iac/config/nginx > /etc/nginx/sites-enabled/svennex
+            cp iac/systemd/sidekiq.service /usr/lib/systemd/system
+            cp iac/systemd/rails.service /usr/lib/systemd/system
+            rm /etc/nginx/sites-enabled/default
+            certbot --email ${LetsEncryptEmail} --non-interactive --agree-tos --nginx -d ${DomainName}
+            service nginx restart
+            # echo "source /svennex-v3/.env.production" >> /etc/profile
+            systemctl enable rails.service
+            systemctl enable sidekiq.service
+            systemctl start rails.service
+            systemctl start sidekiq.service
+
+  EC2EIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref EC2Instance
+
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref Ec2InstanceSize
+      SubnetId: !Ref PublicSubnet1
+      LaunchTemplate:
+        LaunchTemplateId: !Ref Ec2LaunchTemplate
+        Version: !GetAtt Ec2LaunchTemplate.LatestVersionNumber

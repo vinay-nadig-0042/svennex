@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Svennex</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_pack_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
+  </head>
+
+  <body class="min-vh-100 d-flex <%= current_user ? 'flex-row' : 'flex-column' %>">
+    <% unless current_user %>
+      <%= render 'layouts/public_header' %>
+    <% end %>
+    <% if current_user %>
+      <%= render 'layouts/sidebar' %>
+    <% end %>
+    <div class="container">
+      <div style="margin-top: 20px;">
+        <% if notice.present? %>
+          <p class="alert alert-info"><%= notice %></p>
+        <% end %>
+        <% if alert.present? %>
+          <p class="alert alert-warning"><%= alert %></p>
+        <% end %>
+        <%= yield %>
+      </div>
+    </div>
+  </body>
+</html>

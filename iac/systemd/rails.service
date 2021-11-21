@@ -1,0 +1,18 @@
+[Unit]
+Description=Rails Server
+Requires=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/svennex-v3
+EnvironmentFile=/svennex-v3/.env.production
+ExecStartPre=/usr/bin/bash -lc 'RAILS_ENV=production bundle exec rake assets:precompile && bundle exec rake db:migrate'
+ExecStart=/usr/bin/bash -lc 'RAILS_ENV=production PORT=3000 bundle exec puma -C config/puma.rb'
+TimeoutSec=900
+RestartSec=15s
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

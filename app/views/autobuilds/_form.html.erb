@@ -1,0 +1,217 @@
+<div class="d-none d-flex flex-column min-vh-100 justify-content-center align-items-center" id="newAutobuildOverlay">
+  <div class="text-white spinner-border" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <span class="text-white mt-3">Fetching Code Repositories...</span>
+</div>
+<%= form_with(model: autobuild, class: "contents") do |form| %>
+  <% if autobuild.errors.any? %>
+    <div class="alert alert-danger" role="alert">
+      <% autobuild.errors.each do |error| %>
+        <span><%= error.full_message %></span><br />
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="form-group mb-3">
+    <%= form.label :name, "Name", class: 'h5' %>
+    <%= form.text_field :name, class: 'form-control' %>
+  </div>
+
+  <div class="form-group mb-3">
+    <%= form.label :description, "Description", class: 'h5' %>
+    <%= form.text_area :description, class: 'form-control' %>
+  </div>
+
+  <% if autobuild.new_record? %>
+    <div class="row">
+      <div class="col-lg-4">
+        <div class="form-group mb-3">
+          <div class="mb-3">
+            <label for="autobuildRepoType" class="h5 form-label">Select Repository Type</label>
+            <select name="autobuild[code_repo_type]" id="autobuild_code_repo_type" class="form-select">
+              <option selected>Select Repository Type</option>
+              <option value="github">Github</option>
+              <option value="gitlab">Gitlab</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="autobuildGithubAppContainer" class="d-none col-lg-4">
+        <div class="form-group mb-3">
+          <div class="mb-3">
+            <label for="autobuild_github_app" class="h5 form-label">Select Github Org</label>
+            <select name="autobuild[github_linked_app]" id="autobuild_github_app" class="form-select">
+              <option selected>Select Github Org</option>
+              <%= @github_linked_apps.to_a.each do |app| %>
+                <option value="<%= app.id %>"><%= app.username %></option>
+              <% end %>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="autobuildGitlabAppContainer" class="d-none col-lg-4">
+        <div class="form-group mb-3">
+          <div class="mb-3">
+            <label for="autobuild_gitlab_app" class="h5 form-label">Select Github Org</label>
+            <select name="autobuild[gitlab_linked_app]" id="autobuild_gitlab_app" class="form-select">
+              <option selected>Select Gitlab Org</option>
+              <%= @gitlab_linked_apps.to_a.each do |app| %>
+                <option value="<%= app.id %>"><%= app.username %></option>
+              <% end %>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="codeRepoListContainer" class="d-none col-lg-4">
+        <div class="form-group mb-3">
+          <div class="mb-3">
+            <label for="autobuild_code_repo_name" class="h5 form-label">Code Repo</label>
+            <select name="autobuild[code_repo_name]" id="autobuild_code_repo_name" class="form-select">
+              <option value="0" selected>Select Code Repo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div id="dockerRegistryTypeContainer" class="col-lg-4">
+        <div class="form-group mb-3">
+          <div class="mb-3">
+            <label for="autobuild_docker_registry_type" class="h5 form-label">Docker Registry Type</label>
+            <select id="autobuild_docker_registry_type" class="form-select">
+              <option selected>Select Docker Registry Type</option>
+              <option value="dockerhub">DockerHub</option>
+              <!-- <option value="awsecr">AWS ECR</option> -->
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="dockerRegistryListContainer" class="d-none col-lg-4">
+        <div class="form-group mb-3">
+          <div class="mb-3">
+            <label for="autobuild_docker_registry" class="h5 form-label">Docker Registry</label>
+            <select name="autobuild[docker_registry]" id="autobuild_docker_registry" class="form-select">
+              <option selected>Select Docker Registry</option>
+              <%= @docker_hub_registries.where(verification_status: 'complete').to_a.each do |reg| %>
+                <option value="<%= reg.id %>"><%= reg.repo_name %></option>
+              <% end %>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="form-group mb-3">
+          <label class="h5 form-label">Repository Name</label>
+          <span readonly class="form-control"><%= autobuild.code_repo_name %></span>
+          <small>You cannot change the Code Repo after creating an Autobuild</small>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="form-group mb-3">
+          <label class="h5 form-label">Docker Registry</label>
+          <span readonly class="form-control"><%= autobuild.docker_hub_registries.first.try(:repo_name) %></span>
+          <small>You cannot change the Docker Hub registry after creating an Autobuild</small>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <label for="autobuildRules" class="mb-0 h5 form-label">Build Rules <a id="addBuildRule" href="#"><i class="ms-2 fa fa-plus text-primary"></i></a></label>
+      <small class="d-block">You can have up to 10 Build Rules per Autobuild</small>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-12">
+      <table class="table table-striped table-hover table-bordered">
+        <thead>
+            <tr>
+              <th>Source Type</th>
+              <th>Source</th>
+              <th>Docker Tag</th>
+              <th>Dockerfile Name</th>
+              <th>Build Context</th>
+              <th>Autobuild</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="buildRulesContainer">
+            <% if action_name == "new" %>
+              <!-- TODO: This should probably be a separate partial -->
+              <tr>
+                <!-- TODO: Add poppers with help info for each of this -->
+                <td><%= form.select "rules[0][source_type]", [["Branch", "branch"], ["Tag", "tag"]], {}, { class: 'form-select'} %></td>
+                <td><%= form.text_field "rules[0][source]", value: 'master', placeholder: 'master', class: 'form-control' %></td>
+                <td><%= form.text_field "rules[0][docker_tag]", value: 'latest', placeholder: 'latest', class: 'form-control' %></td>
+                <td><%= form.text_field "rules[0][dockerfile]", value: 'Dockerfile', placeholder: 'Dockerfile', class: 'form-control' %></td>
+                <td><%= form.text_field "rules[0][build_context]", value: '/', placeholder: '/', class: 'form-control' %></td>
+                <td><%= form.check_box "rules[0][autobuild]", checked: true, class: 'form-check-input align-middle' %></td>
+                <td><%= link_to 'Delete', '#', class: 'deleteBuildRule btn btn-danger btn-sm' %></td>
+              </tr>
+            <% else %>
+              <% autobuild.rules.to_a.each_with_index do |rule, i| %>
+                <tr>
+                  <td><%= form.select "rules[#{i}][source_type]", [["Branch", "branch"], ["Tag", "tag"]], { selected: rule.dig("source_type") }, { class: 'form-select'} %></td>
+                  <td><%= form.text_field "rules[#{i}][source]", value: rule.dig("source"), placeholder: 'master', class: 'form-control' %></td>
+                  <td><%= form.text_field "rules[#{i}][docker_tag]", value: rule.dig("docker_tag"), placeholder: 'latest', class: 'form-control' %></td>
+                  <td><%= form.text_field "rules[#{i}][dockerfile]", value: rule.dig("dockerfile"), placeholder: 'Dockerfile', class: 'form-control' %></td>
+                  <td><%= form.text_field "rules[#{i}][build_context]", value: rule.dig("build_context"), placeholder: '/', class: 'form-control' %></td>
+                  <td><%= form.check_box "rules[#{i}][autobuild]", checked: rule.dig("autobuild"), class: 'form-check-input align-middle' %></td>
+                  <td><%= link_to 'Delete', '#', class: 'deleteBuildRule btn btn-danger btn-sm' %></td>
+                </tr>
+              <% end %>
+            <% end %>
+          </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-12">
+      <label class="mb-0 h5 form-label">Environment Variables <a id="addEnvVars" href="#"><i class="ms-2 fa fa-plus text-primary" aria-hidden="true"></i></a></label>
+      <small class="d-block">You can have up to 20 Environemtn Variables per Autobuild</small>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-12">
+      <table class="table table-striped table-hover table-bordered">
+        <thead>
+            <tr>
+              <th>Key</th>
+              <th>Value</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="envVarsContainer">
+            <% if action_name == "new" %>
+              <!-- TODO: This should probably be a separate partial -->
+              <tr>
+                <!-- TODO: Add poppers with help info for each of this -->
+                <td><%= form.text_field "env_vars[0][key]", placeholder: 'DEBUG', class: 'form-control' %></td>
+                <td><%= form.text_field "env_vars[0][value]", placeholder: 'true', class: 'form-control' %></td>
+                <td><%= link_to 'Delete', '#', class: 'deleteBuildRule btn btn-danger btn-sm' %></td>
+              </tr>
+            <% else %>
+              <% autobuild.env_vars.to_a.each_with_index do |env_var, i| %>
+                <tr>
+                  <td><%= form.text_field "env_vars[#{i}][key]", value: env_var.dig("key"), placeholder: 'DEBUG', class: 'form-control' %></td>
+                  <td><%= form.text_field "env_vars[#{i}][value]", value: env_var.dig("value"), placeholder: 'true', class: 'form-control' %></td>
+                  <td><%= link_to 'Delete', '#', class: 'deleteBuildRule btn btn-danger btn-sm' %></td>
+                </tr>
+              <% end %>
+            <% end %>
+          </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="inline">
+    <%= form.submit 'Save', class: 'btn btn-primary' %>
+  </div>
+<% end %>
+<%= javascript_pack_tag 'autobuild_new.js' %>

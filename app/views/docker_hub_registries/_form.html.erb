@@ -1,0 +1,38 @@
+<%= form_with(model: docker_hub_registry, class: "contents") do |form| %>
+  <% if docker_hub_registry.errors.any? %>
+    <div class="alert alert-danger" role="alert">
+      <% docker_hub_registry.errors.each do |error| %>
+        <span><%= error.full_message %></span><br />
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="form-group mb-3">
+    <%= form.label :name, "Name", class: 'h5' %>
+    <%= form.text_field :name, class: 'form-control' %>
+  </div>
+
+  <div class="form-group mb-3">
+    <%= form.label :description, "Description", class: 'h5' %>
+    <%= form.text_area :description, class: 'form-control' %>
+  </div>
+
+  <div class="form-group mb-3">
+    <%= form.label :username, "Dockerhub Username", class: 'h5' %>
+    <%= form.text_field :username, class: 'form-control' %>
+  </div>
+
+  <div class="form-group mb-3">
+    <%= form.label :username, "Dockerhub Repository Name", class: 'h5' %>
+    <%= form.text_field :repo_name, class: 'form-control' %>
+  </div>
+
+  <div class="form-group mb-3">
+    <%= form.label :access_token, "Access Token", class: 'h5' %>
+    <%= form.text_field :access_token, type: :password, class: 'form-control' %>
+  </div>
+
+  <div class="inline">
+    <%= form.submit 'Save', class: 'btn btn-primary' %>
+  </div>
+<% end %>

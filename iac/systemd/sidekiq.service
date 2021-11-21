@@ -1,0 +1,17 @@
+[Unit]
+Description=Sidekiq
+Requires=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/svennex-v3
+EnvironmentFile=/svennex-v3/.env.production
+ExecStart=/usr/bin/bash -lc 'bundle exec sidekiq'
+TimeoutSec=30
+RestartSec=15s
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

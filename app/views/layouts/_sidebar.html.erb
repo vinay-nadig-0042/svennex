@@ -1,0 +1,57 @@
+<div id="mainSidebar" class="sidebar sidebar-show">
+  <ul data-coreui="navigation" class="sidebar-nav">
+    <li class="mt-0 border-bottom border-dark nav-title">
+      <h5 class="m-1"><a href="/" class="text-decoration-none text-light">SVENNEX</a></h5>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/autobuilds">
+        Autobuilds
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/build_jobs">
+        Build Jobs
+      </a>
+    </li>
+    <li class="nav-item nav-group">
+      <a class="nav-link nav-group-toggle" href="#">
+         Linked Applications
+      </a>
+      <ul class="nav-group-items">
+        <li class="nav-item">
+          <a class="ps-5 nav-link" href="/oauth/github/apps">
+            Github
+          </a>
+        </li>
+      </ul>
+      <ul class="nav-group-items">
+        <li class="nav-item">
+          <a class="ps-5 nav-link" href="/oauth/gitlab/apps">
+            Gitlab
+          </a>
+        </li>
+      </ul>
+    </li>
+    <li class="nav-item nav-group">
+      <a class="nav-link nav-group-toggle" href="#">
+         Container Registries
+      </a>
+      <ul class="nav-group-items">
+        <li class="nav-item">
+          <a class="ps-5 nav-link" href="/docker_hub_registries">
+            DockerHub
+          </a>
+        </li>
+      </ul>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="<%= edit_user_registration_path %>">
+        Profile
+      </a>
+    </li>
+    <li class="flex-fill"></li>
+    <li class="nav-item">
+      <%= link_to 'Sign Out', destroy_user_session_path, method: :delete, class: 'bg-danger nav-link'%>
+    </li>
+  </ul>
+</div>
