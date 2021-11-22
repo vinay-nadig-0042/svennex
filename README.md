@@ -60,4 +60,6 @@ It deploys the following components.
 | sa-east-1      | South America (São Paulo) | [Deploy To AWS](https://sa-east-1.console.aws.amazon.com/cloudformation/home?region=sa-east-1#/stacks/create/review?templateURL=https://svennex-cf-templates.s3.amazonaws.com/app.yml&stackName=Svennex) |
 
 
-Follow instructions as detailed [here]() to complete the setup. Total setup time ~30 minutes.
+##### Deployment Instructions
+
+[![Deployment](https://img.youtube.com/vi/D-jv-4pqqiE/0.jpg)](https://youtu.be/D-jv-4pqqiE "Svennex Deployment")
