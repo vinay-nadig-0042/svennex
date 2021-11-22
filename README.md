@@ -4,6 +4,10 @@ Open source & self hostable alternative to [Dockerhub Automated Builds](https://
 
 **Note:** Svennex is still in **alpha** stage of development. There might be breaking changes in the future.
 
+### See it in action
+
+https://user-images.githubusercontent.com/9299876/142789096-4019d749-0e60-4fdc-8ddc-ade41afe9001.mp4
+
 ### Getting Started
 
 You will need the following components ready before deploying Svennex.
