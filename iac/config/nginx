@@ -12,9 +12,9 @@ server {
   keepalive_timeout 5;
 
   # path for static files
-  root /svennex-v3/public;
-  access_log /svennex-v3/log/nginx.access.log;
-  error_log /svennex-v3/log/nginx.error.log info;
+  root /svennex/public;
+  access_log /svennex/log/nginx.access.log;
+  error_log /svennex/log/nginx.error.log info;
 
   # this rewrites all the requests to the maintenance.html
   # page if it exists in the doc root. This is for capistrano's
@@ -73,6 +73,6 @@ server {
   # Error pages
   # error_page 500 502 503 504 /500.html;
   location = /500.html {
-    root /svennex-v3/current/public;
+    root /svennex/current/public;
   }
 }

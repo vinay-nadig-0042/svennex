@@ -171,10 +171,74 @@
       </table>
     </div>
   </div>
+  <div class="mb-3 row">
+    <div class="col-lg-12">
+      <div class="accordion" id="buildRuleExamples">
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-coreui-toggle="collapse" data-coreui-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              Build Rule Examples
+            </button>
+          </h2>
+          <div id="collapseOne" class="accordion-collapse collapse" data-coreui-parent="#buildRuleExamples">
+            <div class="accordion-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Scenario</th>
+                    <th scope="col">Source Type</th>
+                    <th scope="col">Source</th>
+                    <th scope="col">Docker Tag</th>
+                    <th scope="col">Matches</th>
+                    <th scope="col">Docker Tag Built</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Exact match</th>
+                    <td>Branch</td>
+                    <td>master</td>
+                    <td>latest</td>
+                    <td>master</td>
+                    <td>latest</td>
+                  </tr>
+                  <tr>
+                    <td>Match versions</th>
+                    <td>Tag</td>
+                    <td>/^[0-9.]+$/</td>
+                    <td>release-{sourceref}</td>
+                    <td>1.2.0</td>
+                    <td>release-1.2.0</td>
+                  </tr>
+                  <tr>
+                    <td>Trailing modifiers</th>
+                    <td>Tag</td>
+                    <td>/^[0-9.]+/</td>
+                    <td>release-{sourceref}</td>
+                    <td>1.2.0-rc</td>
+                    <td>release-1.2.0-rc</td>
+                  </tr>
+                  <tr>
+                    <td>Extract version number</td>
+                    <td>Tag</td>
+                    <td>/^v([0-9.]+)$/</td>
+                    <td>version-{\1}</td>
+                    <td>v1.2.3</td>
+                    <td>version-1.2.3</td>
+                  </tr>
+                </tbody>
+              </table>
+              <small>Svennex supports the same configuration supported by Docker Hub for Build Rules.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="row">
     <div class="col-lg-12">
       <label class="mb-0 h5 form-label">Environment Variables <a id="addEnvVars" href="#"><i class="ms-2 fa fa-plus text-primary" aria-hidden="true"></i></a></label>
-      <small class="d-block">You can have up to 20 Environemtn Variables per Autobuild</small>
+      <small class="d-block">You can have up to 20 Environment Variables per Autobuild</small>
     </div>
   </div>
   <div class="row">

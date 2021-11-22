@@ -324,13 +324,14 @@ Resources:
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
             gpg2 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
             apt-get update
             apt-get install -y docker-ce docker-ce-cli containerd.io
             \curl -sSL https://get.rvm.io | bash -s stable
             source /usr/local/rvm/scripts/rvm
             rvm install 3.0.0
-            git clone git@github.com:vinay-nadig-0042/svennex.git
-            cd svennex-v3/
+            git clone https://github.com/vinay-nadig-0042/svennex.git
+            cd svennex/
             bundle install
             npm install -g yarn
             echo "DATABASE_URL=postgresql://${RdsMasterUsername}:${RdsMasterPassword}@${PrimaryDB.Endpoint.Address}/svennex" >> .env.production
@@ -351,13 +352,11 @@ Resources:
             echo "RAILS_ENV=${RailsEnv}" >> .env.production
             echo "SIDEKIQ_CONCURRENCY=10" >> .env.production
             export DOMAIN_NAME=${DomainName}
-            envsubst '${!DOMAIN_NAME}' < /svennex-v3/iac/config/nginx > /etc/nginx/sites-enabled/svennex
+            envsubst '${!DOMAIN_NAME}' < /svennex/iac/config/nginx > /etc/nginx/sites-enabled/svennex
             cp iac/systemd/sidekiq.service /usr/lib/systemd/system
             cp iac/systemd/rails.service /usr/lib/systemd/system
             rm /etc/nginx/sites-enabled/default
-            certbot --email ${LetsEncryptEmail} --non-interactive --agree-tos --nginx -d ${DomainName}
             service nginx restart
-            # echo "source /svennex-v3/.env.production" >> /etc/profile
             systemctl enable rails.service
             systemctl enable sidekiq.service
             systemctl start rails.service
